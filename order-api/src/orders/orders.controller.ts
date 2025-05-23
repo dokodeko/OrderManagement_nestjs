@@ -1,27 +1,27 @@
 // src/orders/orders.controller.ts
-
 import {
+  Controller,
+  Get,
+  Post,
   Patch,
   Delete,
   Body,
-  Controller,
   Param,
   ParseIntPipe,
   UsePipes,
+  UseInterceptors,
   ValidationPipe,
-  Post,
-  Get,
-  // … other imports …
 } from '@nestjs/common';
-import { OrdersService } from './orders.service';
-import { UpdateOrderDto } from './update-order.dto';
+import { OrdersService }  from './orders.service';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { CreateOrderDto } from './create-order.dto';
+import { UpdateOrderDto } from './update-order.dto';
 
+@UseInterceptors(CacheInterceptor)   // ← apply caching to all handlers in this controller
 @Controller('orders')
 export class OrdersController {
-  constructor(private ordersService: OrdersService) {}
+  constructor(private readonly ordersService: OrdersService) {}
 
-  // … existing @Post, @Get, @Get(':id') …
   @Post()
   @UsePipes(new ValidationPipe({ whitelist: true }))
   create(@Body() dto: CreateOrderDto) {
@@ -37,7 +37,7 @@ export class OrdersController {
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.ordersService.findOne(id);
   }
-  
+
   @Patch(':id')
   @UsePipes(new ValidationPipe({ whitelist: true }))
   update(
