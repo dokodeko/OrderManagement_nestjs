@@ -1,0 +1,16 @@
+{
+  // Treat all .css files as Tailwind CSS
+  "files.associations": {
+    "**/*.css": "tailwindcss"
+  },
+  // Turn off the built-in CSS validator (it doesn’t know @tailwind)
+  "css.validate": false,
+  // Enable PostCSS validation so imports/variables still work
+  "postcss.validate": true,
+  // Ignore unknown at-rules in plain CSS validation
+  "css.lint.unknownAtRules": "ignore",
+  // Tell the Tailwind extension to hook into CSS files
+  "tailwindCSS.includeLanguages": {
+    "css": "css"
+  }
+}
