@@ -16,6 +16,7 @@ generator client {
 
 model User {
   id      Int     @id @default(autoincrement())
+  name    String
   email   String  @unique
   orders  Order[]
 }
@@ -24,7 +25,7 @@ model Order {
   id        Int      @id @default(autoincrement())
   products  String
   quantity  Int
-  total     Float
+  price     Float
   date      DateTime @default(now())
   status    String
   user      User     @relation(fields: [userId], references: [id])
