@@ -87,10 +87,20 @@ Register or login with email.
 
 Create, edit, and delete orders in the dashboard.
 
-Cleanup
+Running Backend Tests
 
+We use Jest to run the NestJS backend tests. From the project root, execute:
+
+docker-compose exec api npm run test\```
+This will run all unit and integration tests defined in the `order-api` service.
+
+If you want to watch files and re-run tests on change:
+```bash
+docker-compose exec api npm run test:watch\```
+
+## Cleanup
 To stop and remove all containers, networks, and volumes:
-
+```bash
 docker-compose down --remove-orphans -v
 
 To reset your local database (drops all data):
