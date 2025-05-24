@@ -5,13 +5,16 @@ import { OrdersModule } from './orders/orders.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { MessagingModule } from './messaging/messaging.module';
 import { CacheModule } from './cache/cache.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
-  OrdersModule,
   PrismaModule,
+  UsersModule,
+  OrdersModule,
   MessagingModule,
-  CacheModule
+  CacheModule,
+  UsersModule
 ],
   controllers: [AppController],
   providers: [AppService],

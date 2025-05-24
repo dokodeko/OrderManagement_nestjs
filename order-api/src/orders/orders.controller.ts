@@ -14,8 +14,8 @@ import {
 } from '@nestjs/common';
 import { OrdersService }  from './orders.service';
 import { CacheInterceptor } from '@nestjs/cache-manager';
-import { CreateOrderDto } from './create-order.dto';
-import { UpdateOrderDto } from './update-order.dto';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 
 @UseInterceptors(CacheInterceptor)   // ← apply caching to all handlers in this controller
 @Controller('orders')
