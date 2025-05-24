@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateOrderDto } from './create-order.dto';
+import { CreateOrderDto } from './dto/create-order.dto';
 import { PrismaService } from '../prisma/prisma.service'; // Adjust the path as needed
-import { UpdateOrderDto } from './update-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 
 @Injectable()

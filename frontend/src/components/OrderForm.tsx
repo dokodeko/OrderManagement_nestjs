@@ -1,12 +1,20 @@
-// src/components/OrderForm.jsx
 import React, { useState, useEffect } from 'react';
 import { useOrders } from '../hooks/useOrders';
+import { useAuth } from '../context/AuthContext';
 
-const empty = { products: '', quantity: 1, total: 0, date: '', status: '', userId: 1 };
+const makeEmptyForm = (userId) => ({
+  products: '',
+  quantity: 1,
+  price: 0,
+  status: 'pending',
+  userId,
+});
 
 export default function OrderForm({ initialData, onDone }) {
-  const { addOrder, updateOrder, isLoading: isAdding, isLoading: isUpdating } = useOrders();
-  const [form, setForm] = useState(empty);
+  const { user } = useAuth();
+  const { addOrder, updateOrder, isLoading: isSubmitting } = useOrders();
+
+  const [form, setForm] = useState(() => makeEmptyForm(user?.id));
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -14,62 +22,127 @@ export default function OrderForm({ initialData, onDone }) {
       setForm({
         products: initialData.products,
         quantity: initialData.quantity,
-        total: initialData.total,
-        date: new Date(initialData.date).toISOString().slice(0,16),
+        price: initialData.price,
         status: initialData.status,
         userId: initialData.userId,
       });
       setError(null);
+    } else {
+      setForm(makeEmptyForm(user?.id));
     }
-  }, [initialData]);
+  }, [initialData, user?.id]);
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(f => ({
-      ...f,
-      [name]: ['quantity','total','userId'].includes(name) ? +value : value,
-    }));
+    if (name === 'quantity' || name === 'price') {
+      setForm((prev) => ({ ...prev, [name]: Number(value) }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setError(null);
+
+    const payload = {
+      products: form.products,
+      quantity: form.quantity,
+      price: form.price,
+      status: form.status,
+      userId: form.userId,
+      date: new Date().toISOString(),
+    };
+
     if (initialData?.id) {
       updateOrder.mutate(
-        { id: initialData.id, data: form },
-        { onSuccess: () => onDone?.() }
+        { id: initialData.id, data: payload },
+        {
+          onSuccess: () => {
+            onDone?.();
+          },
+          onError: () => setError('Failed to update order'),
+        }
       );
     } else {
       addOrder.mutate(
-        form,
-        { onError: () => setError('Failed to create order') }
+        payload,
+        {
+          onSuccess: () => {
+            // reset form to empty for next entry
+            setForm(makeEmptyForm(user?.id));
+            onDone?.();
+          },
+          onError: () => setError('Failed to create order'),
+        }
       );
     }
-    setForm(empty);
   };
 
-  const loading = isAdding || isUpdating;
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 mb-6 bg-white p-4 rounded-lg shadow">
-      {error && <div className="text-red-600">{error}</div>}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <input name="products" value={form.products} onChange={handleChange} placeholder="Products" className="border border-gray-300 rounded p-2 w-full" />
-        <input name="quantity" type="number" value={form.quantity} onChange={handleChange} placeholder="Quantity" className="border border-gray-300 rounded p-2 w-full" />
-        <input name="total" type="number" value={form.total} onChange={handleChange} placeholder="Total" className="border border-gray-300 rounded p-2 w-full" />
-        <input name="date" type="datetime-local" value={form.date} onChange={handleChange} className="border border-gray-300 rounded p-2 w-full" />
-        <select name="status" value={form.status} onChange={handleChange} className="border border-gray-300 rounded p-2 w-full">
-          <option value="">Select status</option>
-          <option value="pending">Pending</option>
-          <option value="shipped">Shipped</option>
-          <option value="delivered">Delivered</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
-        <input name="userId" type="number" value={form.userId} onChange={handleChange} placeholder="User ID" className="border border-gray-300 rounded p-2 w-full" />
-      </div>
-      <button type="submit" disabled={loading} className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded">
-        {initialData ? (loading ? 'Updating…' : 'Update Order') : (loading ? 'Saving…' : 'Create Order')}
-      </button>
-    </form>
+    <div className="flex justify-center p-6">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-2xl space-y-4 bg-white p-6 rounded-lg shadow-lg"
+      >
+        {error && <div className="text-red-600 font-medium">{error}</div>}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input
+            name="products"
+            value={form.products}
+            onChange={handleChange}
+            placeholder="Products"
+            className="border border-gray-300 rounded p-3 w-full focus:border-blue-500 focus:outline-none"
+            required
+          />
+          <input
+            name="quantity"
+            type="number"
+            min="1"
+            value={form.quantity}
+            onChange={handleChange}
+            placeholder="Quantity"
+            className="border border-gray-300 rounded p-3 w-full focus:border-blue-500 focus:outline-none"
+            required
+          />
+          <input
+            name="price"
+            type="number"
+            step="0.01"
+            min="0"
+            value={form.price}
+            onChange={handleChange}
+            placeholder="Price"
+            className="border border-gray-300 rounded p-3 w-full focus:border-blue-500 focus:outline-none"
+            required
+          />
+          <select
+            name="status"
+            value={form.status}
+            onChange={handleChange}
+            required
+            className="border border-gray-300 rounded p-3 w-full focus:border-blue-500 focus:outline-none"
+          >
+            <option value="pending">Pending</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-md shadow"
+        >
+          {initialData
+            ? isSubmitting
+              ? 'Updating…'
+              : 'Update Order'
+            : isSubmitting
+            ? 'Saving…'
+            : 'Create Order'}
+        </button>
+      </form>
+    </div>
   );
 }
